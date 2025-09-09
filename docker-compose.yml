@@ -38,6 +38,6 @@ services:
   #   depends_on:
   #     - redis_vla
 
-volumes:
-  redis:
-    driver: local
+# volumes:
+#   redis:
+#     driver: local

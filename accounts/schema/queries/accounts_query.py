@@ -9,7 +9,7 @@ from accounts.models import User
 
 class Query(graphene.ObjectType):
     pagination_result = None
-    view_me = graphene.Field(UserType, id=graphene.Int(required=True))
+    view_me = graphene.Field(UserType)
     
     @login_required
     def resolve_view_me(self, info, **kwargs):

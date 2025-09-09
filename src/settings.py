@@ -150,7 +150,7 @@ GRAPHQL_AUTH = {
 
 
 
-FORCE_SCRIPT_NAME = "/wholesalers_market"
+FORCE_SCRIPT_NAME = "/wms"
 
 STATIC_URL = f"{FORCE_SCRIPT_NAME}/static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
