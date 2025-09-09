@@ -1,0 +1,43 @@
+services:
+  wholesalers_market:
+    build: .
+    command: sh server-entry.sh
+    volumes:
+      - ./:/app
+    ports:
+      - "8012:8001"
+    restart: always
+    
+
+  # wholesalers_market_redis:
+  #   image: redis:6.2-alpine
+  #   restart: always
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - redis:/data
+  #   command: redis-server --save 20 1 --loglevel warning --port 6379  # Specify the desired port
+
+  # celery_worker:
+  #   build: .
+  #   command: /start-celeryworker
+  #   image: django_celery_worker
+  #   restart: always
+  #   volumes:
+  #     - .:/app
+  #   depends_on:
+  #     - redis_vla
+
+  # celery_beat:
+  #   build: .
+  #   command: /start-celerybeat
+  #   image: django_celery_beat
+  #   restart: always
+  #   volumes:
+  #     - .:/app
+  #   depends_on:
+  #     - redis_vla
+
+# volumes:
+#   redis:
+#     driver: local
