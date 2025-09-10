@@ -9,14 +9,14 @@ services:
     restart: always
     
 
-  # wholesalers_market_redis:
-  #   image: redis:6.2-alpine
-  #   restart: always
-  #   ports:
-  #     - "6379:6379"
-  #   volumes:
-  #     - redis:/data
-  #   command: redis-server --save 20 1 --loglevel warning --port 6379  # Specify the desired port
+  redis_wm:
+    image: redis:6.2-alpine
+    restart: always
+    ports:
+      - "6394:6379"
+    volumes:
+      - redis:/data
+    command: redis-server --save 20 1 --loglevel warning --port 6394  # Specify the desired port
 
   # celery_worker:
   #   build: .
@@ -38,6 +38,5 @@ services:
   #   depends_on:
   #     - redis_vla
 
-# volumes:
-#   redis:
-#     driver: local
+volumes:
+  redis:

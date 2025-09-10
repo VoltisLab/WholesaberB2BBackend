@@ -1,6 +1,11 @@
 from django.db import models
 
-from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
+from django.contrib.auth.models import (
+    AbstractBaseUser,
+    PermissionsMixin,
+    BaseUserManager,
+)
+
 NULL = {"blank": True, "null": True}
 
 from accounts.choices import GenderChoice, AccountType
@@ -49,7 +54,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     display_name = models.CharField(max_length=100, **NULL)
     date_joined = models.DateTimeField(default=timezone.localtime, editable=False)
     account_type = models.CharField(
-        max_length=25, choices=AccountType.choices, default=AccountType.customer,
+        max_length=25,
+        choices=AccountType.choices,
+        default=AccountType.customer,
     )
     last_login = models.DateTimeField(**NULL)
     last_seen = models.DateTimeField(**NULL)
@@ -62,8 +69,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS = []
 
     def __str__(self):
-        return self.username
+        return self.email
 
     def get_full_name(self):
         return f"{self.first_name} {self.last_name}"
-
