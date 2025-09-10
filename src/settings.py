@@ -114,7 +114,7 @@ GRAPHENE = {
     "SCHEMA": "src.schemas.schema",
     "MIDDLEWARE": [
         "graphql_jwt.middleware.JSONWebTokenMiddleware",
-        # "src.middleware.JWTBlacklistMiddleware",
+        "src.middleware.JWTBlacklistMiddleware",
     ],
 }
 
