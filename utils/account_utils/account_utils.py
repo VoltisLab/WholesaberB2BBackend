@@ -142,7 +142,6 @@ class AccountsUtil:
             GenderEnum.PREFER_NOT_TO_SAY: GenderChoice.PREFER_NOT_TO_SAY,
         }
         user.gender = mapping.get(gender)
-        user.save()
 
     @staticmethod
     def _update_dob(user, dob):
@@ -160,6 +159,8 @@ class AccountsUtil:
             user.thumbnail_url = profile_picture["thumbnail_url"]
     
     def _update_phone_number(user, phone_number):
+        if User.objects.filter(phone_number=phone_number).exclude(id=user.id).exists():
+            raise ValueError("Phone number already exists.")
         user.phone_number = phone_number
 
 

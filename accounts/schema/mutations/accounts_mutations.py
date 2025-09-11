@@ -177,6 +177,7 @@ class UpdateUser(graphene.Mutation):
         city = graphene.String()
         postal_code = graphene.String()
         account_type = AccountTypeEnum()
+        phone_number = graphene.String()
 
     user = graphene.Field(UserType)
     success = graphene.Boolean()
