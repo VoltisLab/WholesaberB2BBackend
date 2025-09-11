@@ -8,10 +8,13 @@ from accounts.models import (
 
 
 class UserType(DjangoObjectType):
+    gender = graphene.String()
     class Meta:
         model = User
         exclude = ("is_superuser", "password")
-
+    
+    def resolve_gender(self, info):
+        return self.gender
 
 class DeliveryAddressType(DjangoObjectType):
     user = graphene.Field(UserType)
