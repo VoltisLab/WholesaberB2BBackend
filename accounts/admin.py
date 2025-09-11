@@ -1,5 +1,5 @@
 from django.contrib import admin
-from accounts.models import User
+from accounts.models import User, PhoneVerification, Verification
 
 
 admin.site.site_header = "Wholesalers Market Admin Panel"
@@ -20,4 +20,31 @@ class UserAdmin(admin.ModelAdmin):
     search_fields = (
         "email",
         "account_type",
+    )
+
+@admin.register(PhoneVerification)
+class PhoneVerificationAdmin(admin.ModelAdmin):
+    list_display = (
+        "user",
+        "phone_number",
+        "otp_code",
+        "is_used",
+        "created_at",
+    )
+    search_fields = (
+        "user__email",
+        "phone_number",
+        "otp_code",
+    )
+
+@admin.register(Verification)
+class VerificationAdmin(admin.ModelAdmin):
+    list_display = (
+        "user",
+        "code",
+        "date_created",
+    )
+    search_fields = (
+        "user__email",
+        "code",
     )

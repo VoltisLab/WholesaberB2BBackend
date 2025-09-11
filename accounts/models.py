@@ -8,6 +8,7 @@ from django.contrib.auth.models import (
 
 NULL = {"blank": True, "null": True}
 
+from phonenumber_field.modelfields import PhoneNumberField
 from accounts.choices import GenderChoice, AccountType
 from django.utils import timezone
 
@@ -52,6 +53,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_banned = models.BooleanField(default=False)
     deleted = models.BooleanField(default=False)
     display_name = models.CharField(max_length=100, **NULL)
+    email_verified = models.BooleanField(default=False)
+    phone_verified = models.BooleanField(default=False)
+    phone_number = PhoneNumberField(unique=True, **NULL)
     date_joined = models.DateTimeField(default=timezone.localtime, editable=False)
     account_type = models.CharField(
         max_length=25,
@@ -73,3 +77,44 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def get_full_name(self):
         return f"{self.first_name} {self.last_name}"
+
+
+class PhoneVerification(models.Model):
+    """Model for phone verification OTP"""
+
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="phone_verifications"
+    )
+    phone_number = models.CharField(max_length=20)
+    otp_code = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    is_used = models.BooleanField(default=False)
+    attempts = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["user", "is_used"]),
+            models.Index(fields=["phone_number", "otp_code"]),
+        ]
+
+    def is_expired(self):
+        return timezone.now() > self.expires_at
+
+    def increment_attempts(self):
+        self.attempts += 1
+        self.save(update_fields=["attempts"])
+
+    def __str__(self):
+        return f"Phone verification for {self.user.email}"
+
+
+class Verification(models.Model):
+    user = models.OneToOneField(
+        User, related_name="otp", unique=True, on_delete=models.CASCADE
+    )
+    code = models.CharField(max_length=10, blank=True, null=True)
+    date_created = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.user.email

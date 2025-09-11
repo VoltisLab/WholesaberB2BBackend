@@ -21,9 +21,12 @@ jobs:
           envkey_DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
           envkey_ALLOW_LOGIN_NOT_VERIFIED: ${{ secrets.ALLOW_LOGIN_NOT_VERIFIED }}
 
-          
           envkey_MAILJET_API_KEY: ${{ secrets.MAILJET_API_KEY }}
           envkey_MAILJET_SECRET_KEY: ${{ secrets.MAILJET_SECRET_KEY }}
+
+          envkey_TERMII_API_KEY: ${{ secrets.TERMII_API_KEY }}
+          envkey_TERMII_SMS_URL: ${{ secrets.TERMII_SMS_URL }}
+          envkey_TERMII_SENDER_ID: ${{ secrets.TERMII_SENDER_ID }}
 
           file_name: .env
           fail_on_empty: false

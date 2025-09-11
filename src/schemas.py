@@ -14,6 +14,7 @@ from graphql_jwt.utils import get_payload, get_user_by_payload
 from accounts.schema.mutations import accounts_mutations
 from accounts.schema.queries import accounts_query
 from accounts.schema.types.accounts_type import UserType
+from security.schema.mutations import security_mutations
 
 
 
@@ -115,6 +116,7 @@ class AuthMutation(graphene.ObjectType):
 class Mutation(
     AuthMutation,
     accounts_mutations.Mutation,
+    security_mutations.Mutation
 ):
     pass
 
