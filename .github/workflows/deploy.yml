@@ -31,6 +31,7 @@ jobs:
           envkey_AWS_SERVER_PUBLIC_KEY: ${{ secrets.AWS_SERVER_PUBLIC_KEY }}
           envkey_AWS_SERVER_SECRET_KEY: ${{ secrets.AWS_SERVER_SECRET_KEY }}
           envkey_AWS_SERVER_REGION_NAME: ${{ secrets.AWS_SERVER_REGION_NAME }}
+          envkey_REDIS_URL: ${{ secrets.REDIS_URL }}
 
           file_name: .env
           fail_on_empty: false
