@@ -15,6 +15,10 @@ django-anymail==12.0
 django-filter==25.1
 django-graphene-auth==1.1.1
 django-graphql-jwt==0.4.0
+django-graphql-ratelimit==1.0.2
+django-ipware==7.0.1
+django-phonenumber-field==8.1.0
+django-ratelimit==4.1.0
 graphene==3.4.3
 graphene-django==3.2.2
 graphql-core==3.2.6
@@ -26,6 +30,7 @@ incremental==24.7.2
 mypy_extensions==1.1.0
 packaging==25.0
 pathspec==0.12.1
+phonenumbers==9.0.13
 platformdirs==4.4.0
 promise==2.3
 pyasn1==0.6.1
@@ -35,6 +40,7 @@ PyJWT==2.10.1
 pyOpenSSL==25.1.0
 python-dateutil==2.9.0.post0
 python-decouple==3.8
+python-ipware==3.0.0
 requests==2.32.5
 service-identity==24.2.0
 six==1.17.0
@@ -45,6 +51,5 @@ Twisted==25.5.0
 txaio==25.6.1
 typing_extensions==4.15.0
 urllib3==2.5.0
-uvicorn==0.35.0
 whitenoise==6.10.0
 zope.interface==7.2

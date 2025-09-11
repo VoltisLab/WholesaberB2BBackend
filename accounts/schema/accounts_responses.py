@@ -6,3 +6,7 @@ PASSWORD_SAME_AS_CURRENT_PASSWORD = (
 PASSWORD_TOO_SHORT = "Password must be at least {} characters long."
 PASSWORDS_DO_NOT_MATCH = "Passwords do not match."
 PASSWORD_CHANGE_SUCCESSFUL = "Password changed successfully."
+PHONE_VERIFICATION_SENT = "A verification code has been sent to your phone number."
+OTP_VERIFICATION_SUCCESS = "Verification successful."
+VERIFICATION_CODE_INVALID = "The verification code is invalid or has expired."
+

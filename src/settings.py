@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "graphql_auth",
     # local apps
     "accounts",
+    "security",
 ]
 
 MIDDLEWARE = [
