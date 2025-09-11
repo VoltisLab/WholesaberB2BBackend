@@ -4,12 +4,14 @@ from django.db import models
 class GenderChoice(models.TextChoices):
     MALE = "MALE", "Male"
     FEMALE = "FEMALE", "Female"
-    ANY = "ANY", "Any"
+    OTHER = "OTHER", "Other"
+    PREFER_NOT_TO_SAY = "PREFER_NOT_TO_SAY", "Prefer not to say"
 
 
 class AccountType(models.TextChoices):
-    customer = "CUSTOMER", "Customer"
-    vendor = "VENDOR", "Vendor"
+    CUSTOMER = "CUSTOMER", "Customer"
+    VENDOR = "VENDOR", "Vendor"
+    SUPPLIER = "SUPPLIER", "Supplier"
 
 
 class TimeZoneChoice(models.TextChoices):

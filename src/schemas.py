@@ -12,6 +12,9 @@ from graphql_auth.utils import normalize_fields
 from graphql_jwt.exceptions import JSONWebTokenError
 from graphql_jwt.utils import get_payload, get_user_by_payload
 from accounts.schema.mutations import accounts_mutations
+from non_modular_schema.mutations import non_modular_mutations
+from products.schema.mutations import product_mutations
+from products.schema.queries import product_queries
 from accounts.schema.queries import accounts_query
 from accounts.schema.types.accounts_type import UserType
 from security.schema.mutations import security_mutations
@@ -116,13 +119,16 @@ class AuthMutation(graphene.ObjectType):
 class Mutation(
     AuthMutation,
     accounts_mutations.Mutation,
-    security_mutations.Mutation
+    product_mutations.Mutation,
+    security_mutations.Mutation,
+    non_modular_mutations.Mutation,
 ):
     pass
 
 
 class Query(
     accounts_query.Query,
+    product_queries.Query,
 ):
     pass
 

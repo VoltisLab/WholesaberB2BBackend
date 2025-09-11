@@ -1,0 +1,408 @@
+import graphene
+from graphql_jwt.decorators import login_required
+from products.models import MultibuyDiscount, Order, Product
+from products.schema.api_descriptions import OFFER_OVERVIEW
+from products.schema.enums.product_enums import (
+    ConditionEnum,
+    DeliveryPayerEnum,
+    OfferActionEnum,
+    OrderStatusEnum,
+    OrderCancellationReasonEnum,
+    ParcelSizeEnum,
+    SellerResponseEnum,
+    StyleEnum,
+)
+from products.schema.inputs.product_inputs import (
+    DeliveryDetailsInputType,
+    ImageUpdateInputType,
+    ImagesInputType,
+    MultibuyInputType,
+)
+from products.schema.product_responses import (
+    CREATE_PRODUCT_SUCCESS,
+    DELETE_PRODUCT_SUCCESS,
+    UPDATE_PRODUCT_SUCCESS,
+    PRODUCT_REPORTED,
+)
+from products.schema.types.product_types import (
+    MultibuyDiscountType,
+    OfferReturnType,
+    OrderType,
+    ProductType,
+)
+from utils.chat_utils.chat_utils import ChatUtils
+from utils.decorators import user_verified_required
+from utils.non_modular_utils.errors import ErrorException
+from utils.product_utils.offer_utils import OfferUtils
+from utils.product_utils.order_utils import OrderUtils
+from utils.product_utils.product_utils import ProductUtils
+from utils.product_utils.shipment_service import ShippingService
+from utils.non_modular_utils.errors import ErrorException, GenericError, StandardError
+
+
+class CreateProduct(graphene.Mutation):
+    class Arguments:
+        name = graphene.String(required=True)
+        description = graphene.String(required=True)
+        price = graphene.Float(required=True)
+        category = graphene.Int(required=True)
+        size = graphene.Int()
+        images_url = graphene.List(ImagesInputType, required=True)
+        discount = graphene.Float()
+        condition = ConditionEnum()
+        parcel_size = ParcelSizeEnum()
+        style = StyleEnum()
+        color = graphene.List(graphene.String)
+        brand = graphene.Int()
+        materials = graphene.List(graphene.Int)
+        custom_brand = graphene.String()
+        is_featured = graphene.Boolean()
+
+    success = graphene.Boolean()
+    message = graphene.String()
+    product = graphene.Field(ProductType)
+
+    @login_required
+    def mutate(self, info, **kwargs):
+        product = ProductUtils.create_product(info.context.user, **kwargs)
+
+        return CreateProduct(
+            success=True, message=CREATE_PRODUCT_SUCCESS, product=product
+        )
+
+
+class UpdateProduct(graphene.Mutation):
+    class Arguments:
+        product_id = graphene.Int(required=True)
+        name = graphene.String()
+        description = graphene.String()
+        price = graphene.Float()
+        images_url = ImageUpdateInputType()
+        discount_price = graphene.Float()
+        condition = ConditionEnum()
+        parcel_size = ParcelSizeEnum()
+        style = StyleEnum()
+        category = graphene.Int()
+        size = graphene.Int()
+        color = graphene.List(graphene.String)
+        brand = graphene.Int()
+        materials = graphene.List(graphene.Int)
+        custom_brand = graphene.String()
+        is_featured = graphene.Boolean()
+
+    success = graphene.Boolean()
+    message = graphene.String()
+    product = graphene.Field(ProductType)
+
+    @login_required
+    def mutate(self, info, **kwargs):
+        product = ProductUtils.update_product(info.context.user, **kwargs)
+
+        return UpdateProduct(
+            success=True, message=UPDATE_PRODUCT_SUCCESS, product=product
+        )
+
+
+class DeleteProduct(graphene.Mutation):
+    class Arguments:
+        product_id = graphene.Int(required=True)
+
+    success = graphene.Boolean()
+    message = graphene.String()
+
+    @login_required
+    def mutate(self, info, **kwargs):
+        product_id = kwargs.pop("product_id")
+
+                               ProductUtils.delete_product(info.context.user, product_id)
+
+        return DeleteProduct(success=True, message=DELETE_PRODUCT_SUCCESS)
+
+
+class LikeProduct(graphene.Mutation):
+    class Arguments:
+        product_id = graphene.Int(required=True)
+
+    success = graphene.Boolean()
+
+    @login_required
+    def mutate(self, info, **kwargs):
+        product_id = kwargs.get("product_id")
+
+        success = ProductUtils.like_product(info.context.user, product_id)
+
+        return LikeProduct(
+            success=success,
+        )
+
+
+class CreateOrder(graphene.Mutation):
+    class Arguments:
+        product_id = graphene.Int()
+        product_ids = graphene.List(graphene.Int)
+        shipping_fee = graphene.Float()
+        delivery_details = DeliveryDetailsInputType(required=True)
+        is_buyer_protection_enabled = graphene.Boolean()
+
+    success = graphene.Boolean()
+    order = graphene.Field(OrderType)
+
+    @login_required
+    @user_verified_required
+    def mutate(self, info, **kwargs):
+        user = info.context.user
+        product_id = kwargs.get("product_id", None)
+        product_ids = kwargs.get("product_ids", None)
+
+        try:
+            if product_id:
+                # Single-item order
+                order = OrderUtils.create_single_item_order(user, **kwargs)
+            elif product_ids:
+                # Multi-item order
+                order = OrderUtils.create_multi_item_order(user, **kwargs)
+            else:
+                raise ErrorException(
+                    message="You must provide either a product_id or a list of product_ids",
+                    error_type=GenericError,
+                    meta={},
+                    code=422,
+                )
+
+            return CreateOrder(success=True, order=order)
+        except Exception as e:
+            raise ErrorException(
+                message=f"An error occurred while creating the order. {e}",
+                error_type=GenericError,
+                meta={},
+                code=422,
+            )
+
+
+class UpdateOrderStatus(graphene.Mutation):
+    class Arguments:
+        order_id = graphene.Int(required=True)
+        status = OrderStatusEnum(required=True)
+
+    success = graphene.Boolean()
+    order = graphene.Field(OrderType)
+
+    @login_required
+    def mutate(self, info, **kwargs):
+        user = info.context.user
+        order_id = kwargs.get("order_id")
+        status = kwargs.get("status")
+
+        try:
+            order = Order.objects.get(id=order_id, user=user)
+            shipping_service = ShippingService(order)
+            shipping_service.update_shipment(status=status.value)
+            return UpdateOrderStatus(success=True, order=order)
+
+        except Order.DoesNotExist:
+            raise ErrorException(
+                message="Order does not exist",
+                error_type=StandardError,
+                meta={},
+                code=404,
+            )
+
+        except Exception as err:
+            raise ErrorException(message=str(err), error_type=GenericError, meta={})
+
+
+class CancelOrder(graphene.Mutation):
+    class Arguments:
+        order_id = graphene.Int(required=True)
+        reason = OrderCancellationReasonEnum(required=True)
+        images_url = graphene.List(graphene.String, required=True)
+        notes = graphene.String(required=True)
+
+    success = graphene.Boolean()
+
+    @login_required
+    def mutate(self, info, **kwargs):
+        user = info.context.user
+        order_id = kwargs.get("order_id")
+        reason = kwargs.get("reason").value
+        images_url = kwargs.get("images_url")
+        notes = kwargs.get("notes")
+
+        success = OrderUtils.cancel_order(user, order_id, reason, images_url, notes)
+
+        return CancelOrder(success=success)
+
+
+class RespondToCancelledOrder(graphene.Mutation):
+    class Arguments:
+        order_id = graphene.Int(required=True)
+        response = SellerResponseEnum(required=True)
+        delivery_payer = DeliveryPayerEnum()
+
+    success = graphene.Boolean()
+    message = graphene.String()
+
+    @login_required
+    def mutate(self, info, **kwargs):
+        seller = info.context.user
+        order_id = kwargs.get("order_id")
+        response = kwargs.get("response").value
+        delivery_payer = kwargs.get("delivery_payer", None)
+        response = OrderUtils.seller_response_to_cancelled_order(
+            seller, order_id, response, delivery_payer
+        )
+        return RespondToCancelledOrder(
+            success=response["success"], message=response["message"]
+        )
+
+
+class CreateOffer(graphene.Mutation):
+    class Arguments:
+        product_ids = graphene.List(graphene.Int, required=True)
+        offer_price = graphene.Float(required=True)
+        message = graphene.String()
+
+    success = graphene.Boolean()
+    message = graphene.String()
+    data = graphene.Field(OfferReturnType)
+
+    @login_required
+    @user_verified_required
+    def mutate(self, info, **kwargs):
+        user = info.context.user
+
+        response = OfferUtils.create_offer(user, **kwargs)
+        offer = response.get("offer", None)
+        existing_offer = response.get("existing_offer")
+        parent_offer = response.get("parent_offer")
+
+        result = None
+        if offer:
+            result = ChatUtils.create_message(
+                sender=user,  # Buyer get to create offer
+                receiver=response["seller"],  # Seller
+                message_text={
+                    "offer_id": int(offer.id),
+                },
+                is_offer=True,
+                offer=offer,
+            )
+
+        OfferUtils.send_offer_event_status(offer=offer, parent_offer=parent_offer)
+        if not existing_offer:
+            notification_message = "made an offer on your product(s)"
+            OfferUtils.send_notification(user, offer, notification_message)
+
+        return CreateOffer(
+            success=response["success"],
+            message=response["message"],
+            data=OfferReturnType(
+                offer=response.get("all_offers", None),
+                conversation_id=result if result else None,
+            ),
+        )
+
+
+class RespondToOffer(graphene.Mutation):
+    class Arguments:
+        offer_id = graphene.Int(required=True)
+        action = OfferActionEnum(required=True)
+        offer_price = graphene.Float()
+
+    success = graphene.Boolean()
+    message = graphene.String()
+    data = graphene.Field(OfferReturnType)
+
+    @login_required
+    @user_verified_required
+    def mutate(self, info, **kwargs):
+        user = info.context.user
+
+        response = OfferUtils.respond_to_offer(user, **kwargs)
+        offer = response.get("offer", None)
+
+        result = None
+        if offer:
+            receiver = offer.buyer if user == response["seller"] else response["seller"]
+            result = ChatUtils.create_message(
+                sender=user,
+                receiver=receiver,
+                message_text={
+                    "offer_id": int(offer.id),
+                },
+                is_offer=True,
+                offer=offer,
+            )
+
+        return RespondToOffer(
+            success=response["success"],
+            message=response["message"],
+            data=OfferReturnType(
+                offer=response.get("all_offers", None),
+                conversation_id=result if result else None,
+            ),
+        )
+
+
+class CreateOrUpdateMultibuyDiscount(graphene.Mutation):
+    class Arguments:
+        inputs = graphene.List(MultibuyInputType, required=True)
+
+    success = graphene.Boolean()
+    multibuy_discounts = graphene.List(MultibuyDiscountType)
+
+    @login_required
+    def mutate(self, info, inputs):
+        seller = info.context.user
+
+        multibuy_discounts = ProductUtils.create_or_update_multibuy_discount(
+            seller, inputs
+        )
+
+        return CreateOrUpdateMultibuyDiscount(
+            success=True, multibuy_discounts=multibuy_discounts
+        )
+
+
+class DeactivateMultibuyDiscounts(graphene.Mutation):
+    success = graphene.Boolean()
+
+    @login_required
+    def mutate(self, info):
+        seller = info.context.user
+
+        MultibuyDiscount.objects.filter(seller=seller, is_active=True).update(
+            is_active=False
+        )
+
+        return DeactivateMultibuyDiscounts(success=True)
+
+
+class ReportProduct(graphene.Mutation):
+    class Arguments:
+        product_id = graphene.ID(required=True)
+        reason = graphene.String(required=True)
+        content = graphene.String()
+
+    message = graphene.String()
+
+    @login_required
+    def mutate(self, info, **kwargs):
+        ProductUtils.report_product(info.context.user, **kwargs)
+        return ReportProduct(message=PRODUCT_REPORTED)
+
+
+class Mutation(graphene.ObjectType):
+    create_product = CreateProduct.Field()
+    update_product = UpdateProduct.Field()
+    delete_product = DeleteProduct.Field()
+    like_product = LikeProduct.Field()
+    create_order = CreateOrder.Field()
+    update_order_status = UpdateOrderStatus.Field()
+    cancel_order = CancelOrder.Field()
+    response_to_cancelled_order = RespondToCancelledOrder.Field()
+    create_offer = CreateOffer.Field()
+    create_multibuy_discount = CreateOrUpdateMultibuyDiscount.Field()
+    deactivate_multibuy_discounts = DeactivateMultibuyDiscounts.Field()
+    respond_to_offer = RespondToOffer.Field(description=OFFER_OVERVIEW)
+    report_product = ReportProduct.Field()

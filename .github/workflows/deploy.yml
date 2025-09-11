@@ -28,6 +28,10 @@ jobs:
           envkey_TERMII_SMS_URL: ${{ secrets.TERMII_SMS_URL }}
           envkey_TERMII_SENDER_ID: ${{ secrets.TERMII_SENDER_ID }}
 
+          envkey_AWS_SERVER_PUBLIC_KEY: ${{ secrets.AWS_SERVER_PUBLIC_KEY }}
+          envkey_AWS_SERVER_SECRET_KEY: ${{ secrets.AWS_SERVER_SECRET_KEY }}
+          envkey_AWS_SERVER_REGION_NAME: ${{ secrets.AWS_SERVER_REGION_NAME }}
+
           file_name: .env
           fail_on_empty: false
 

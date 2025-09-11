@@ -47,7 +47,9 @@ INSTALLED_APPS = [
     "graphql_auth",
     # local apps
     "accounts",
+    "products",
     "security",
+    "notifications",
 ]
 
 MIDDLEWARE = [
@@ -200,3 +202,22 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
 AUTH_USER_MODEL = "accounts.User"
+
+
+AWS_SERVER_PUBLIC_KEY = config("AWS_SERVER_PUBLIC_KEY")
+AWS_SERVER_SECRET_KEY = config("AWS_SERVER_SECRET_KEY")
+AWS_SERVER_REGION_NAME = config("AWS_SERVER_REGION_NAME")
+
+
+BUCKET = "prelura"
+# Upload Types
+PROFILE_PICTURE = "PROFILE"
+VIDEO = "VIDEO"
+RESOURCES = "RESOURCES"
+PRODUCT = "PRODUCT"
+BANNER = "BANNER"
+OUTFEATZ = "OUTFEATZ"
+
+UPLOAD_BASE_URL = f"https://{BUCKET}.s3.eu-west-2.amazonaws.com/"
+
+REDIS_URL = config("REDIS_URL")
