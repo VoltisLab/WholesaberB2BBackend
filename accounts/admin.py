@@ -22,6 +22,7 @@ class UserAdmin(admin.ModelAdmin):
         "account_type",
     )
 
+
 @admin.register(PhoneVerification)
 class PhoneVerificationAdmin(admin.ModelAdmin):
     list_display = (
@@ -36,6 +37,7 @@ class PhoneVerificationAdmin(admin.ModelAdmin):
         "phone_number",
         "otp_code",
     )
+
 
 @admin.register(Verification)
 class VerificationAdmin(admin.ModelAdmin):

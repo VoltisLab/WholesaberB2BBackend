@@ -60,8 +60,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     account_type = models.CharField(
         max_length=25,
         choices=AccountType.choices,
-        default=AccountType.customer,
+        default=AccountType.CUSTOMER,
     )
+    city = models.CharField(max_length=100, **NULL)
+    street_address = models.CharField(max_length=255, **NULL)
+    postal_code = models.CharField(max_length=20, **NULL)
     last_login = models.DateTimeField(**NULL)
     last_seen = models.DateTimeField(**NULL)
     meta = models.JSONField(default=dict, **NULL)
@@ -118,3 +121,37 @@ class Verification(models.Model):
 
     def __str__(self):
         return self.user.email
+
+
+class SearchHistory(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    query = models.CharField(max_length=255)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    # result_count = models.IntegerField(null=True, blank=True)
+    search_type = models.CharField(max_length=100, null=True, blank=True)
+    deleted = models.BooleanField(default=False)
+    search_count = models.IntegerField(default=1)
+    search_frequency = models.IntegerField(default=1)
+    last_searched = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-timestamp"]
+
+
+class DeliveryAddress(models.Model):
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="delivery_addresses"
+    )
+    address_type = models.CharField(max_length=50)
+    name = models.CharField(max_length=100)
+    phone_number = PhoneNumberField()
+    street_address = models.CharField(max_length=255)
+    city = models.CharField(max_length=100)
+    province = models.CharField(max_length=100, **NULL)
+    is_default = models.BooleanField(default=False)
+    postal_code = models.CharField(max_length=20)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.name} - {self.address_type}"
