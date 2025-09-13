@@ -12,12 +12,18 @@ from graphql_auth.utils import normalize_fields
 from graphql_jwt.exceptions import JSONWebTokenError
 from graphql_jwt.utils import get_payload, get_user_by_payload
 from accounts.schema.mutations import accounts_mutations
+from accounts.schema.account_mutations import AccountMutations
 from non_modular_schema.mutations import non_modular_mutations
 from products.schema.mutations import product_mutations
 from products.schema.queries import product_queries
 from accounts.schema.queries import accounts_query
+from accounts.schema.account_queries import AccountQueries
 from accounts.schema.types.accounts_type import UserType
 from security.schema.mutations import security_mutations
+from orders.schema.mutations import OrderMutations
+from orders.schema.queries import OrderQueries
+from reviews.schema.mutations import ReviewMutations
+from reviews.schema.queries import ReviewQueries
 
 
 
@@ -119,16 +125,24 @@ class AuthMutation(graphene.ObjectType):
 class Mutation(
     AuthMutation,
     accounts_mutations.Mutation,
+    AccountMutations,
     product_mutations.Mutation,
     security_mutations.Mutation,
     non_modular_mutations.Mutation,
+    OrderMutations,
+    ReviewMutations,
 ):
     pass
 
 
 class Query(
     accounts_query.Query,
+    AccountQueries,
     product_queries.Query,
+    OrderQueries,
+    ReviewQueries,
+    accounts_mutations.Is2FAEnabled,
+    accounts_mutations.GetActiveSessions,
 ):
     pass
 

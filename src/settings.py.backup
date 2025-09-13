@@ -225,6 +225,3 @@ OUTFEATZ = "OUTFEATZ"
 UPLOAD_BASE_URL = f"https://{BUCKET}.s3.eu-west-2.amazonaws.com/"
 
 REDIS_URL = config("REDIS_URL", default="redis://localhost:6379/0")
-# Media files configuration
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

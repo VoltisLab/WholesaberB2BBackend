@@ -17,14 +17,37 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path
-
+from django.conf import settings
+from django.conf.urls.static import static
+from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.core.files.storage import default_storage
+import uuid
+import os
+
 from graphene_django.views import GraphQLView
 from graphene_file_upload.django import FileUploadGraphQLView
-from graphene_django.views import GraphQLView
+
+@csrf_exempt
+def upload_image(request):
+    if request.method == 'POST':
+        try:
+            if 'image' in request.FILES:
+                image_file = request.FILES['image']
+                file_extension = os.path.splitext(image_file.name)[1]
+                unique_filename = f"{uuid.uuid4()}{file_extension}"
+                file_path = default_storage.save(f'profile_images/{unique_filename}', image_file)
+                image_url = request.build_absolute_uri(f'/media/{file_path}')
+                return JsonResponse({'success': True, 'image_url': image_url, 'message': 'Image uploaded successfully'})
+            else:
+                return JsonResponse({'success': False, 'message': 'No image file provided'}, status=400)
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': f'Upload failed: {str(e)}'}, status=500)
+    return JsonResponse({'success': False, 'message': 'Only POST method allowed'}, status=405)
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("graphql/", csrf_exempt(GraphQLView.as_view(graphiql=True))),
     path("graphql/uploads/", csrf_exempt(FileUploadGraphQLView.as_view(graphiql=True))),
-]
+    path("api/upload-image/", upload_image, name='upload_image'),
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
