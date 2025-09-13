@@ -15,6 +15,7 @@ from accounts.schema.mutations import accounts_mutations
 from accounts.schema.account_mutations import AccountMutations
 from non_modular_schema.mutations import non_modular_mutations
 from products.schema.mutations import product_mutations
+from products.schema.mutations.shop_mutations import ShopMutations
 from products.schema.queries import product_queries
 from accounts.schema.queries import accounts_query
 from accounts.schema.account_queries import AccountQueries
@@ -127,6 +128,7 @@ class Mutation(
     accounts_mutations.Mutation,
     AccountMutations,
     product_mutations.Mutation,
+    ShopMutations,
     security_mutations.Mutation,
     non_modular_mutations.Mutation,
     OrderMutations,

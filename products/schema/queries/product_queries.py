@@ -148,7 +148,7 @@ class Query(graphene.ObjectType):
         return product
 
     @login_required
-    @cache_categories(timeout=None)  # TODO: Change to indefinite cache
+    # @cache_categories(timeout=None)  # TODO: Change to indefinite cache - temporarily disabled for debugging
     def resolve_categories(self, info, **kwargs):
         parent_id = kwargs.get("parent_id", None)
 

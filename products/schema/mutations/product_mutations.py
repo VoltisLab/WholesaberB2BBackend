@@ -147,3 +147,7 @@ class Mutation(graphene.ObjectType):
     # deactivate_multibuy_discounts = DeactivateMultibuyDiscounts.Field()
     # respond_to_offer = RespondToOffer.Field(description=OFFER_OVERVIEW)
     # report_product = ReportProduct.Field()
+
+
+# Import shop mutations
+from .shop_mutations import ShopMutations
