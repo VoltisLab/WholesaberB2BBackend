@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: wholesaleb2b-backend
+    env: python
+    plan: free
+    buildCommand: |
+      pip install -r requirements.txt
+      python manage.py migrate --settings=src.settings_render
+      python manage.py collectstatic --noinput --settings=src.settings_render
+    startCommand: gunicorn src.wsgi:application
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: src.settings_render
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALLOWED_HOSTS
+        value: *.onrender.com
