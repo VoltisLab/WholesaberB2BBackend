@@ -111,21 +111,21 @@ def generate_reference():
     return f"PRELURA-{uuid.uuid4()}-{milli_date()}".lower()
 
 
-def build_product_filter_conditions(user: User, filters: dict, search: str = None) -> Q:
+def build_product_filter_conditions(user, filters: dict, search: str = None) -> Q:
     # Initialize filter conditions with deleted=False to exclude deleted items
     filter_conditions = Q(deleted=False)
 
     # Apply filters dynamically
     if "name" in filters:
         filter_conditions &= Q(name__icontains=filters["name"])
-    if "brand" in filters:
+    if "brand" in filters and filters["brand"] is not None:
         filter_conditions &= Q(brand__id=filters["brand"])
-    if "parent_category" in filters:
+    if "parent_category" in filters and filters["parent_category"] is not None:
         child_categories_ids = Category.objects.filter(
             slug__startswith=filters["parent_category"].value.lower()
         ).values_list("id", flat=True)
         filter_conditions &= Q(category__in=child_categories_ids)
-    if "category" in filters:
+    if "category" in filters and filters["category"] is not None:
         filter_conditions &= Q(category__id=filters["category"])
     if "custom_brand" in filters:
         filter_conditions &= Q(custom_brand=filters["custom_brand"])
@@ -139,13 +139,13 @@ def build_product_filter_conditions(user: User, filters: dict, search: str = Non
     elif "max_price" in filters:
         filter_conditions &= Q(price__lte=filters["max_price"])
 
-    if "condition" in filters:
+    if "condition" in filters and filters["condition"] is not None:
         filter_conditions &= Q(condition=filters["condition"].value)
-    if "size" in filters:
+    if "size" in filters and filters["size"] is not None:
         filter_conditions &= Q(size__id=filters["size"])
-    if "style" in filters:
+    if "style" in filters and filters["style"] is not None:
         filter_conditions &= Q(style=filters["style"].value)
-    if "status" in filters:
+    if "status" in filters and filters["status"] is not None:
         filter_conditions &= Q(status=filters["status"].value)
     if "discount_price" in filters and filters["discount_price"] is True:
         filter_conditions &= Q(discount_price__gt=0)

@@ -133,6 +133,68 @@ class ProductUtils:
             )
 
     @staticmethod
+    def duplicate_product(logged_in_user: User, product_id: int, **kwargs: dict) -> Product:
+        """
+        Duplicate an existing product with optional modifications.
+        
+        Args:
+            logged_in_user: The user creating the duplicate
+            product_id: ID of the product to duplicate
+            **kwargs: Optional modifications to apply to the duplicate
+            
+        Returns:
+            Product: The newly created duplicate product
+        """
+        try:
+            # Get the original product
+            original_product = Product.objects.get(id=product_id, deleted=False)
+            
+            # Create the duplicate with modified data
+            duplicate_data = {
+                "name": kwargs.get("name", f"{original_product.name} (Copy)"),
+                "seller": logged_in_user,
+                "description": kwargs.get("description", original_product.description),
+                "price": kwargs.get("price", original_product.price),
+                "discount_price": kwargs.get("discount_price", original_product.discount_price),
+                "condition": kwargs.get("condition", original_product.condition),
+                "parcel_size": kwargs.get("parcel_size", original_product.parcel_size),
+                "size": kwargs.get("size", original_product.size),
+                "style": kwargs.get("style", original_product.style),
+                "category": kwargs.get("category", original_product.category),
+                "images_url": kwargs.get("images_url", original_product.images_url),
+                "color": kwargs.get("color", original_product.color),
+                "brand": kwargs.get("brand", original_product.brand),
+                "custom_brand": kwargs.get("custom_brand", original_product.custom_brand),
+                "hashtags": kwargs.get("hashtags", original_product.hashtags),
+                "is_featured": False,  # New products are not featured by default
+                "status": StatusChoices.ACTIVE,
+            }
+            
+            # Create the duplicate product
+            duplicate_product = Product.objects.create(**duplicate_data)
+            
+            # Copy materials if they exist
+            if original_product.materials.exists():
+                duplicate_product.materials.set(original_product.materials.all())
+            
+            return duplicate_product
+            
+        except Product.DoesNotExist:
+            raise ErrorException(
+                message="Product not found",
+                error_type=GenericError,
+                meta={"product_id": product_id},
+                code=404,
+            )
+        except Exception as e:
+            raise ErrorException(
+                message=f"Failed to duplicate product: {str(e)}",
+                error_type=GenericError,
+                meta={"product_id": product_id},
+                code=500,
+            )
+
+    @staticmethod
     def update_product(logged_in_user: User, **kwargs: dict) -> Product:
         try:
             materials = None
@@ -361,28 +423,36 @@ class ProductUtils:
             return success
 
     @staticmethod
-    def resolve_all_products(loggedin_user: User, **kwargs: dict) -> List[Product]:
-        search = kwargs.get("search", None)
-        filters = kwargs.get("filters", {})
-        sort = kwargs.get("sort", None)
+    def resolve_all_products(loggedin_user, **kwargs: dict) -> List[Product]:
+        try:
+            search = kwargs.get("search", None)
+            filters = kwargs.get("filters", {})
+            sort = kwargs.get("sort", None)
 
-        # Build filter conditions using the helper function
-        filter_conditions = build_product_filter_conditions(
-            loggedin_user, filters, search
-        )
-        exclusion_conditions = get_exclusion_queries("seller") | Q(
-        )
+            # Build filter conditions using the helper function
+            filter_conditions = build_product_filter_conditions(
+                loggedin_user, filters, search
+            )
+            exclusion_conditions = get_exclusion_queries("seller")
 
-        # Add a filter to include only active products
-        filter_conditions &= Q(status=StatusChoices.ACTIVE)
+            # Add a filter to include only active products
+            filter_conditions &= Q(status=StatusChoices.ACTIVE)
 
-        # Apply all filters in one query
-        if sort:
-            products = Product.objects.filter(filter_conditions).order_by(sort.value)
-        else:
-            products = Product.objects.filter(filter_conditions).order_by("?")
+            # Apply all filters in one query
+            if sort:
+                products = Product.objects.filter(filter_conditions).order_by(sort.value)
+            else:
+                products = Product.objects.filter(filter_conditions).order_by("?")
 
-        return products.exclude(exclusion_conditions)
+            result = products.exclude(exclusion_conditions)
+            
+            # Ensure we return a QuerySet, not None
+            return result if result is not None else Product.objects.none()
+            
+        except Exception as e:
+            print(f"Error in ProductUtils.resolve_all_products: {e}")
+            # Return empty queryset instead of None
+            return Product.objects.none()
 
     @staticmethod
     def resolve_user_products(logged_in_user: User, **kwargs: dict) -> List[Product]:
@@ -420,7 +490,8 @@ class ProductUtils:
                 id=product_id, deleted=False
             )
 
-            if product.seller != logged_in_user:
+            # Only update view count if user is logged in and not the seller
+            if logged_in_user and product.seller != logged_in_user:
                 # Using select_for_update to prevent race conditions on views count
                 with transaction.atomic():
                     product = Product.objects.select_for_update().get(id=product_id)

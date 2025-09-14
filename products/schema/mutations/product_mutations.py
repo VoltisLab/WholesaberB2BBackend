@@ -15,6 +15,7 @@ from products.schema.product_responses import (
     DELETE_PRODUCT_SUCCESS,
     UPDATE_PRODUCT_SUCCESS,
     PRODUCT_REPORTED,
+    DUPLICATE_PRODUCT_SUCCESS,
 )
 from products.schema.types.product_types import (
     ProductType,
@@ -133,11 +134,57 @@ class ReportProduct(graphene.Mutation):
         return ReportProduct(message=PRODUCT_REPORTED)
 
 
+class DuplicateProduct(graphene.Mutation):
+    class Arguments:
+        product_id = graphene.Int(required=True)
+        name = graphene.String()
+        description = graphene.String()
+        price = graphene.Float()
+        discount_price = graphene.Float()
+        condition = ConditionEnum()
+        style = StyleEnum()
+        color = graphene.List(graphene.String)
+        brand = graphene.Int()
+        materials = graphene.List(graphene.Int)
+        custom_brand = graphene.String()
+
+    success = graphene.Boolean()
+    message = graphene.String()
+    product = graphene.Field(ProductType)
+
+    @login_required
+    def mutate(self, info, product_id, **kwargs):
+        try:
+            # Remove None values from kwargs
+            clean_kwargs = {k: v for k, v in kwargs.items() if v is not None}
+            
+            product = ProductUtils.duplicate_product(info.context.user, product_id, **clean_kwargs)
+
+            return DuplicateProduct(
+                success=True, 
+                message=DUPLICATE_PRODUCT_SUCCESS, 
+                product=product
+            )
+        except ErrorException as e:
+            return DuplicateProduct(
+                success=False, 
+                message=e.message, 
+                product=None
+            )
+        except Exception as e:
+            return DuplicateProduct(
+                success=False, 
+                message=f"An unexpected error occurred: {str(e)}", 
+                product=None
+            )
+
+
 class Mutation(graphene.ObjectType):
     create_product = CreateProduct.Field()
     update_product = UpdateProduct.Field()
     delete_product = DeleteProduct.Field()
     like_product = LikeProduct.Field()
+    duplicate_product = DuplicateProduct.Field()
     # create_order = CreateOrder.Field()
     # update_order_status = UpdateOrderStatus.Field()
     # cancel_order = CancelOrder.Field()

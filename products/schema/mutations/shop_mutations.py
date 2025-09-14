@@ -27,6 +27,7 @@ class ShopProductType(graphene.ObjectType):
     name = graphene.String()
     description = graphene.String()
     price = graphene.Float()
+    images_url = graphene.JSONString()
     category = graphene.Field('products.schema.types.product_types.CategoryType')
     brand = graphene.Field('products.schema.types.product_types.BrandType')
     size = graphene.Field('products.schema.types.product_types.SizeType')
@@ -123,6 +124,7 @@ class GetShopData(graphene.Mutation):
                     name=product.name,
                     description=product.description,
                     price=product.price,
+                    images_url=product.images_url,
                     category=product.category,
                     brand=product.brand,
                     size=product.size,

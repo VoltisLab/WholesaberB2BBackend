@@ -36,6 +36,18 @@ class ProductType(DjangoObjectType):
     user_liked = graphene.Boolean()
     materials = graphene.List(lambda: BrandType)
     price = graphene.Float()
+    images_url = graphene.JSONString()
+    condition = graphene.String()
+    style = graphene.String()
+    parcel_size = graphene.String()
+    color = graphene.JSONString()
+    hashtags = graphene.JSONString()
+    views = graphene.Int()
+    likes = graphene.Int()
+    status = graphene.String()
+    is_featured = graphene.Boolean()
+    created_at = graphene.DateTime()
+    updated_at = graphene.DateTime()
 
     class Meta:
         model = Product
@@ -43,6 +55,20 @@ class ProductType(DjangoObjectType):
             "id",
             "name",
             "description",
+            "images_url",
+            "price",
+            "discount_price",
+            "condition",
+            "style",
+            "parcel_size",
+            "color",
+            "hashtags",
+            "views",
+            "likes",
+            "status",
+            "is_featured",
+            "created_at",
+            "updated_at",
         )
 
     def resolve_seller(self, info):
@@ -55,6 +81,8 @@ class ProductType(DjangoObjectType):
         return self.size
 
     def resolve_user_liked(self, info):
+        if not info.context.user.is_authenticated:
+            return False
         return ProductLike.objects.filter(
             user=info.context.user, product__id=self.id, deleted=False
         ).exists()

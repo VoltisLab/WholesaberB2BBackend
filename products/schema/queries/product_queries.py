@@ -109,15 +109,27 @@ class Query(graphene.ObjectType):
         page_number = kwargs.get("page_number", None)
         user = info.context.user if info.context.user.is_authenticated else None
 
-        products = ProductUtils.resolve_all_products(user, **kwargs)
+        try:
+            products = ProductUtils.resolve_all_products(user, **kwargs)
+            
+            # Ensure products is not None
+            if products is None:
+                products = Product.objects.none()
 
-        # Paginate result
-        result, total_pages, total_items = DatabaseUtil.paginate_query(
-            products, page_count, page_number
-        )
-        Query.pagination_result = (result, total_pages, total_items)
+            # Paginate result
+            result, total_pages, total_items = DatabaseUtil.paginate_query(
+                products, page_count, page_number
+            )
+            Query.pagination_result = (result, total_pages, total_items)
 
-        return result
+            # Ensure we always return a list, never None
+            return result if result is not None else []
+            
+        except Exception as e:
+            # Log the error and return empty list
+            print(f"Error in resolve_all_products: {e}")
+            Query.pagination_result = ([], 0, 0)
+            return []
 
     def resolve_all_products_total_number(self, info, **kwargs):
         if not Query.pagination_result:
@@ -139,11 +151,12 @@ class Query(graphene.ObjectType):
 
         return result
 
-    @login_required
     def resolve_product(self, info, **kwargs):
         product_id = kwargs.get("id")
-
-        product = ProductUtils.resolve_product(info.context.user, product_id)
+        
+        # Allow viewing products without authentication
+        user = info.context.user if info.context.user.is_authenticated else None
+        product = ProductUtils.resolve_product(user, product_id)
 
         return product
 
