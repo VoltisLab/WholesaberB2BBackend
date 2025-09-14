@@ -19,6 +19,7 @@ from django.contrib import admin
 from django.urls import path
 from django.conf import settings
 from test_views import test_view
+from simple_test import health_check
 from django.conf.urls.static import static
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -48,6 +49,7 @@ def upload_image(request):
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("", health_check, name='health'),
     path("test/", test_view, name='test'),
     path("graphql/", csrf_exempt(GraphQLView.as_view(graphiql=True))),
     path("graphql/uploads/", csrf_exempt(FileUploadGraphQLView.as_view(graphiql=True))),

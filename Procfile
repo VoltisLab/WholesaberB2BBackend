@@ -1,1 +1,1 @@
-web: python manage.py migrate --settings=src.settings_railway && python manage.py collectstatic --noinput --settings=src.settings_railway && python manage.py runserver 0.0.0.0:$PORT --settings=src.settings_railway
+web: python manage.py migrate --settings=src.settings_simple_production && python manage.py collectstatic --noinput --settings=src.settings_simple_production && python manage.py runserver 0.0.0.0:8000 --settings=src.settings_simple_production
