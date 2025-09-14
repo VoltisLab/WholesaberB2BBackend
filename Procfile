@@ -1,1 +1,1 @@
-web: ./start_railway.sh
+web: python manage.py migrate --settings=src.settings_railway && python manage.py collectstatic --noinput --settings=src.settings_railway && python manage.py runserver 0.0.0.0:$PORT --settings=src.settings_railway
