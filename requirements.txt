@@ -29,6 +29,7 @@ django-ipware==7.0.1
 django-phonenumber-field==8.1.0
 django-ratelimit==4.1.0
 django-redis==6.0.0
+Faker==24.0.0
 ffmpeg-python==0.2.0
 future==1.0.0
 graphene==3.4.3
@@ -80,4 +81,3 @@ vine==5.1.0
 wcwidth==0.2.13
 whitenoise==6.10.0
 zope.interface==7.2
-faker==24.0.0
