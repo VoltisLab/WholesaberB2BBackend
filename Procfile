@@ -1,1 +1,1 @@
-web: python manage.py migrate --settings=src.settings_railway && python manage.py collectstatic --noinput --settings=src.settings_railway && daphne -b 0.0.0.0 -p $PORT --settings=src.settings_railway src.asgi:application
+web: python manage.py runserver 0.0.0.0:$PORT --settings=src.settings_railway
