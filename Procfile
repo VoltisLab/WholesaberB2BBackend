@@ -1,1 +1,1 @@
-web: python manage.py migrate --settings=src.settings_simple_production && python manage.py collectstatic --noinput --settings=src.settings_simple_production && python manage.py runserver 0.0.0.0:8000 --settings=src.settings_simple_production
+web: python -c "import http.server, socketserver, os; PORT = int(os.environ.get('PORT', 8000)); Handler = http.server.SimpleHTTPRequestHandler; httpd = socketserver.TCPServer(('', PORT), Handler); print(f'Server running on port {PORT}'); httpd.serve_forever()"
