@@ -18,6 +18,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from django.conf import settings
+from test_views import test_view
 from django.conf.urls.static import static
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -47,6 +48,7 @@ def upload_image(request):
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("test/", test_view, name='test'),
     path("graphql/", csrf_exempt(GraphQLView.as_view(graphiql=True))),
     path("graphql/uploads/", csrf_exempt(FileUploadGraphQLView.as_view(graphiql=True))),
     path("api/upload-image/", upload_image, name='upload_image'),
